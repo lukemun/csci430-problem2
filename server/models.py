@@ -44,5 +44,4 @@ class Photo(db.Model):
 
     def to_dict(self):
       return dict(id=self.id,
-                  name=self.name,
-                  created_at=self.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+                  name=self.name)
