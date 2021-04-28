@@ -78,11 +78,12 @@ export default {
     				alert(response.data.error);
     				this.clear();
     			} else {
-    				
+
     			}
     		})
     		.catch((error) => {
     			console.log('error', error);
+    			alert("unauthorized login");
     		});
     },
     register(evt) {
