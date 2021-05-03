@@ -2,7 +2,9 @@
   <div class="container">
     <div class="row">
       <b-col>
-        <h1>Images for {{ username }}</h1>
+        <h1>Images for {{ email }}</h1>
+        <h2>{{ first_name }} {{ last_name }}</h2>
+        <h2>Date of birth: {{ dob }}</h2>
         <hr><br>
         <button type="button" @click='getImages' class="btn btn-success btn-sm">Get Images</button>
         <hr><br>
@@ -47,14 +49,20 @@ export default {
 	name: 'User',
 	data() {
 		return {
-      username: "",
+      email: "",
+      first_name: '',
+      last_name: '',
+      dob: '',
       token: "",
 			imgs: [],
 			uploadFile: [],
 		};
 	},
 	props: {
-    raw_username: String, 
+    raw_email: String,
+    raw_first_name: String,
+    raw_last_name: String,
+    raw_dob: String, 
     raw_token: String,
   },
 	methods: {
@@ -67,9 +75,9 @@ export default {
 				const payload = {
 					name: this.uploadFile.name,
 					file: e.target.result,
-          creator_name: this.username,
-          token: this.token,
+          creator_email: this.email,
 
+          token: this.token,
 				}
 
         axios.post(path, payload)
@@ -113,7 +121,10 @@ export default {
 	},
 	created() {
 		console.log('created');
-    this.username = this.raw_username;
+    this.email = this.raw_email;
+    this.first_name = this.raw_first_name;
+    this.last_name = this.raw_last_name;
+    this.dob = this.raw_dob;
     this.token = this.raw_token;
     console.log(this.username, this.token);
 	}
