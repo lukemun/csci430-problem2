@@ -78,7 +78,14 @@ export default {
     				alert(response.data.error);
     				this.clear();
     			} else {
-
+    				console.log('succesful login');
+    				this.$router.push({
+    					name: 'User',
+    					params: {
+                raw_username: this.form.username,
+    						raw_token: response.data.token,
+    					}
+    				});
     			}
     		})
     		.catch((error) => {
@@ -103,9 +110,11 @@ export default {
     		.then((response) => {
     			console.log(response.data);
     			if (response.data.error != null) {
-    				alert('username taken');
+    				alert(response.data.error);
     				this.clear();
-    			}
+    			} else {
+            alert('user created, login to continue');
+          }
     		})
     		.catch((error) => {
     			console.log('error', error);

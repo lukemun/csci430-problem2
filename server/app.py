@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3, json, re
 from functools import wraps
 from datetime import datetime, timedelta
 
@@ -65,12 +65,63 @@ def close_db(error):
 def ping_pong():
     return jsonify('pong!')
 
+@app.route('/upload', methods=('POST',))
+def upload():
+    response = {}
+    data = request.get_json()
+    username = data.get('creator_name')
+    name = data.get('name')
+    file = data.get('file')
+    token = data.get('token')
+    validate = User.decode_auth_token(token, app.config['SECRET_KEY'])
+    if validate != username:
+        return jsonify( { 'error' : validate })
+    photo = Photo(name, file, username)
+    db = SQLAlchemy()
+    db.session.add(photo)
+    db.session.commit()
+    return jsonify("success")
+
+@app.route('/getImages', methods=('POST', ))
+def getImages():
+    response = {}
+    data = request.get_json()
+    username = data.get('username')
+    token = data.get('token')
+    validate = User.decode_auth_token(token, app.config['SECRET_KEY'])
+    if validate != username:
+        return jsonify( { 'error' : validate })
+    db = get_db()
+    imgs_conn = db.execute('select * from photos where creator_name = ?', [username])
+    imgs = imgs_conn.fetchall()
+    response_imgs = []
+    for row in imgs:
+        temp = {
+            'name': row['name'], 
+            'file': row['file'].decode("utf-8")
+            }
+        response_imgs.append(temp)
+
+
+    response['imgs'] = response_imgs
+    response['status'] = 'success'
+    return response
+
 @app.route('/register', methods=('POST',))
 def register():
     response = {}
     data = request.get_json()
     user = User(**data)
     username = data.get('username')
+    password = data.get('password')
+    regex = ("^(?=.*[a-z])(?=." +
+     "*[A-Z])(?=.*\\d)" +
+     "(?=.*[-+_!@#$%^&*., ?]).+$")
+    p = re.compile(regex)
+    if (len(password) < 8):
+        return jsonify({ 'error' : "password too short"})
+    elif (not re.search(p, password)):
+        return jsonify({ 'error' : "password must contain a number, lowercase, uppercase, and special char"})
     db = get_db()
     known_users = db.execute('select * from users where username = ?', [username])
     print ('known', known_users)
@@ -88,18 +139,26 @@ def register():
 @app.route('/login', methods=('POST',))
 def login():
     data = request.get_json()
+    username = data.get('username')
     user = User.authenticate(**data)
 
     if not user:
         return jsonify({ 'message': 'Invalid credentials', 'authenticated': False }), 401
 
-    token = jwt.encode({
-        'sub': user.username,
-        'iat':datetime.utcnow(),
-        'exp': datetime.utcnow() + timedelta(minutes=30)},
-        app.config['SECRET_KEY'])
+    token = user.encode_auth_token(username, app.config['SECRET_KEY'])
+    # token = jwt.encode({
+    #     'sub': user.username,
+    #     'iat':datetime.utcnow(),
+    #     'exp': datetime.utcnow() + timedelta(minutes=30)},
+    #     app.config['SECRET_KEY'])
     # print (token.decode())
-    return jsonify({ 'token': token })
+    print (token)
+    response = {
+        'token': token,
+        'status': 'success'
+
+    }
+    return jsonify(response)
 
 
 def token_required(f):
@@ -134,11 +193,6 @@ def token_required(f):
 
     return _verify
 
-@app.route('/addImage', methods=('POST',))
-@token_required
-def add_image():
-	# add image to database
-	return jsonify("success")
 
 
 

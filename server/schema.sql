@@ -9,6 +9,7 @@ create table users (
 create table photos (
   id integer primary key autoincrement,
   name text not null,
-  creator_id integer not null,
-  foreign key(creator_id) references users(id)
+  file blob not null,
+  creator_name string(120) not null,
+  foreign key(creator_name) references users(username)
 )
