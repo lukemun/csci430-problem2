@@ -69,14 +69,15 @@ def ping_pong():
 def upload():
     response = {}
     data = request.get_json()
-    username = data.get('creator_name')
+    email = data.get('creator_email')
     name = data.get('name')
     file = data.get('file')
     token = data.get('token')
     validate = User.decode_auth_token(token, app.config['SECRET_KEY'])
-    if validate != username:
+    if validate != email:
+        print("In this validate != email!")
         return jsonify( { 'error' : validate })
-    photo = Photo(name, file, username)
+    photo = Photo(name, file, email)
     db = SQLAlchemy()
     db.session.add(photo)
     db.session.commit()
@@ -86,13 +87,13 @@ def upload():
 def getImages():
     response = {}
     data = request.get_json()
-    username = data.get('username')
+    email = data.get('email')
     token = data.get('token')
     validate = User.decode_auth_token(token, app.config['SECRET_KEY'])
-    if validate != username:
+    if validate != email:
         return jsonify( { 'error' : validate })
     db = get_db()
-    imgs_conn = db.execute('select * from photos where creator_name = ?', [username])
+    imgs_conn = db.execute('select * from photos where creator_email = ?', [email])
     imgs = imgs_conn.fetchall()
     response_imgs = []
     for row in imgs:
@@ -112,24 +113,38 @@ def register():
     response = {}
     data = request.get_json()
     user = User(**data)
-    username = data.get('username')
+    email = data.get('email')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    dob = data.get('dob')
     password = data.get('password')
-    regex = ("^(?=.*[a-z])(?=." +
+    passRegex = ("^(?=.*[a-z])(?=." +
      "*[A-Z])(?=.*\\d)" +
      "(?=.*[-+_!@#$%^&*., ?]).+$")
-    p = re.compile(regex)
-    if (len(password) < 8):
+    p = re.compile(passRegex)
+    emailRegex = ('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$')
+    e = re.compile(emailRegex)
+    print(dob)
+    if (email == '' or not re.search(e, email)):
+        return jsonify({ 'error' : "Please enter a valid email"})
+    elif (first_name == ''):
+        return jsonify({ 'error' : "Please enter a first name"})
+    elif (last_name == ''):
+        return jsonify({ 'error' : "Please enter a last name"})
+    elif (dob == ''):
+        return jsonify({ 'error' : "Please enter a valid date of birth."})
+    elif (len(password) < 8):
         return jsonify({ 'error' : "password too short"})
     elif (not re.search(p, password)):
         return jsonify({ 'error' : "password must contain a number, lowercase, uppercase, and special char"})
     db = get_db()
-    known_users = db.execute('select * from users where username = ?', [username])
+    known_users = db.execute('select * from users where email = ?', [email])
     print ('known', known_users)
     num_users = known_users.fetchall()
-    print ("# user with that username ", len(num_users))
+    print ("# user with that email ", len(num_users))
     if (len(num_users) != 0):
     	print ('here')
-    	response['error'] = "Username taken"
+    	response['error'] = "Email taken"
     	return jsonify(response)
     db = SQLAlchemy()
     db.session.add(user)
@@ -139,24 +154,29 @@ def register():
 @app.route('/login', methods=('POST',))
 def login():
     data = request.get_json()
-    username = data.get('username')
+    email = data.get('email')
     user = User.authenticate(**data)
+
+    print(user.first_name)
+    print(user.last_name)
+    print(user.email)
 
     if not user:
         return jsonify({ 'message': 'Invalid credentials', 'authenticated': False }), 401
 
-    token = user.encode_auth_token(username, app.config['SECRET_KEY'])
+    token = user.encode_auth_token(email, app.config['SECRET_KEY'])
     # token = jwt.encode({
     #     'sub': user.username,
     #     'iat':datetime.utcnow(),
     #     'exp': datetime.utcnow() + timedelta(minutes=30)},
     #     app.config['SECRET_KEY'])
     # print (token.decode())
-    print (token)
     response = {
         'token': token,
-        'status': 'success'
-
+        'status': 'success',
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'dob': user.dob
     }
     return jsonify(response)
 

@@ -11,29 +11,36 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
+    dob = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     photo = db.relationship('Photo', backref="creator", lazy=False)
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = generate_password_hash(password, method='sha256')
+    def __init__(self, email, first_name, last_name, dob, password):
+        self.email = email
+        self.first_name = first_name
+        self.last_name = last_name
+        self.dob = dob
+        self.password = generate_password_hash(password)
+        print(self.password)
 
     @classmethod
     def authenticate(cls, **kwargs):
-        username = kwargs.get('username')
+        email = kwargs.get('email')
         password = kwargs.get('password')
         
-        if not username or not password:
+        if not email or not password:
             return None
 
-        user = cls.query.filter_by(username=username).first()
+        user = cls.query.filter_by(email=email).first()
         if not user or not check_password_hash(user.password, password):
             return None
 
         return user
 
-    def encode_auth_token(self, username, secret_key):
+    def encode_auth_token(self, email, secret_key):
         """
         Generates the Auth Token
         :return: string
@@ -42,7 +49,7 @@ class User(db.Model):
             payload = {
                 'exp': datetime.utcnow() + timedelta(minutes=1),
                 'iat': datetime.utcnow(),
-                'sub': username,
+                'sub': email,
             }
             return jwt.encode(
                 payload,
@@ -62,6 +69,7 @@ class User(db.Model):
 
         try:
             payload = jwt.decode(auth_token, secret_key, algorithms=['HS256'])
+            print(payload)
             return payload['sub']
         except jwt.ExpiredSignatureError:
             return 'Signature expired. Please log in again.'
@@ -69,7 +77,7 @@ class User(db.Model):
             return 'Invalid token. Please log in again.'
 
     def to_dict(self):
-        return dict(id=self.id, username=self.username)
+        return dict(id=self.id, email=self.email)
 
 class Photo(db.Model):
     __tablename__ = 'photos'
@@ -77,11 +85,11 @@ class Photo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     file = db.Column(db.LargeBinary)
-    creator_name = db.Column(db.String(120), db.ForeignKey('users.username'))
+    creator_email = db.Column(db.String(255), db.ForeignKey('users.email'))
 
-    def __init__(self, name, file, creator_name):
+    def __init__(self, name, file, creator_email):
         self.name = name
-        self.creator_name = creator_name
+        self.creator_email = creator_email
         self.file = bytes(file, 'utf-8')
 
 
