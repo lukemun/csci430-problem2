@@ -14,6 +14,8 @@ Terminal 1
 
 1) cd Client
 
+2) npm i
+
 2) npm run serve
 
 Terminal 2
