@@ -128,7 +128,6 @@ export default {
 			email: this.form.email,
 			password: this.form.password,
 		}
-		console.log(payload);
 		this.attemptLogin(payload);
     },
     attemptLogin(payload) {
@@ -136,8 +135,6 @@ export default {
     	const path = 'http://192.168.1.142/login'
     	axios.post(path, payload)
     		.then((response) => {
-				console.log("Hello!");
-    			console.log(response.data);
     			if (response.data.error != null) {
     				alert(response.data.error);
     				this.clear();
@@ -169,7 +166,6 @@ export default {
 			dob: this.form.dob,
 			password: this.form.password,
 		}
-		console.log(payload);
 		this.attemptRegister(payload);
     },
     attemptRegister(payload) {
@@ -177,7 +173,6 @@ export default {
     	const path = 'http://192.168.1.142/register'
     	axios.post(path, payload)
     		.then((response) => {
-    			console.log(response.data);
     			if (response.data.error != null) {
     				alert(response.data.error);
     				this.clear();
@@ -190,7 +185,10 @@ export default {
     		});
     },
     clear() {
-    	this.form.username = '';
+    	this.form.email = '';
+		this.form.first_name = '';
+		this.form.last_name = '';
+		this.form.dob = '';
     	this.form.password = '';
     }
   },

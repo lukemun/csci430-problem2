@@ -2,7 +2,6 @@ import sqlite3, json, re
 from functools import wraps
 from datetime import datetime, timedelta
 
-
 from flask import Flask, g, jsonify, request, abort
 from flask_cors import CORS
 
@@ -10,9 +9,12 @@ from models import *
 
 import jwt
 
+# CHANGE TO SPECIFIC PATH TO YOUR COMPUTER (change 'kyle' to your username)
+DATABASE_PATH = "/home/kyle/csci430-problem2/server/database.db"
+
 # configuration
 DEBUG = True
-DATABASE = "/home/kyle/csci430-problem2/server/database.db"
+DATABASE = DATABASE_PATH
 SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # used for encryption and session management
@@ -22,10 +24,8 @@ SECRET_KEY = 'bigbootyhoes'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-# THIS NEEDS TO BE SECURED
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
-
 
 # connect to database
 def connect_db():
@@ -33,7 +33,6 @@ def connect_db():
     rv = sqlite3.connect(app.config["DATABASE"])
     rv.row_factory = sqlite3.Row
     return rv
-
 
 # create the database
 def init_db():
@@ -43,22 +42,17 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
-
 # open database connection
 def get_db():
     if not hasattr(g, "sqlite_db"):
         g.sqlite_db = connect_db()
     return g.sqlite_db
 
-
 # close database connection
 @app.teardown_appcontext
 def close_db(error):
     if hasattr(g, "sqlite_db"):
         g.sqlite_db.close()
-
-
-
 
 # sanity check route
 @app.route('/ping', methods=['GET'])
@@ -75,7 +69,6 @@ def upload():
     token = data.get('token')
     validate = User.decode_auth_token(token, app.config['SECRET_KEY'])
     if validate != email:
-        print("In this validate != email!")
         return jsonify( { 'error' : validate })
     photo = Photo(name, file, email)
     db = SQLAlchemy()
@@ -140,9 +133,7 @@ def register():
     db = get_db()
     known_users = db.execute('select * from users where email=:email',
             { "email": email })
-    print ('known', known_users)
     num_users = known_users.fetchall()
-    print ("# user with that email ", len(num_users))
     if (len(num_users) != 0):
     	response['error'] = "Email taken"
     	return jsonify(response)
@@ -161,12 +152,6 @@ def login():
         return jsonify({ 'message': 'Invalid credentials', 'authenticated': False }), 401
 
     token = user.encode_auth_token(email, app.config['SECRET_KEY']).decode()
-    # token = jwt.encode({
-    #     'sub': user.username,
-    #     'iat':datetime.utcnow(),
-    #     'exp': datetime.utcnow() + timedelta(minutes=30)},
-    #     app.config['SECRET_KEY'])
-    # print (token.decode())
     response = {
         'token': token,
         'status': 'success',
@@ -175,38 +160,6 @@ def login():
         'dob': user.dob
     }
     return jsonify(response)
-
-def token_required(f):
-    @wraps(f)
-    def _verify(*args, **kwargs):
-        auth_headers = request.headers.get('Authorization', '').split()
-
-        invalid_msg = {
-            'message': 'Invalid token. Registeration and / or authentication required',
-            'authenticated': False
-        }
-        expired_msg = {
-            'message': 'Expired token. Reauthentication required.',
-            'authenticated': False
-        }
-
-        if len(auth_headers) != 2:
-            return jsonify(invalid_msg), 401
-
-        try:
-            token = auth_headers[1]
-            data = jwt.decode(token, current_app.config['SECRET_KEY'])
-            user = User.query.filter_by(email=data['sub']).first()
-            if not user:
-                raise RuntimeError('User not found')
-            return f(user, *args, **kwargs)
-        except jwt.ExpiredSignatureError:
-            return jsonify(expired_msg), 401 # 401 is Unauthorized HTTP status code
-        except (jwt.InvalidTokenError, Exception) as e:
-            print(e)
-            return jsonify(invalid_msg), 401
-
-    return _verify
 
 if __name__ == '__main__':
 	from models import db

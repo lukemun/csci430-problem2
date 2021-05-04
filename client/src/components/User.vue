@@ -71,7 +71,6 @@ export default {
       const path = 'http://192.168.1.142/upload';
 			var reader = new FileReader();
 			reader.onload = (e) => {
-        // console.log('target', e.target.result);
 				const payload = {
 					name: this.uploadFile.name,
 					file: e.target.result,
@@ -82,7 +81,6 @@ export default {
 
         axios.post(path, payload)
           .then((response) => {
-            console.log(response);
             if (response.data.error != null) {
               alert(response.data.error);
             } else {
@@ -94,10 +92,7 @@ export default {
           });
       }
 
-			// console.log('file', this.uploadFile);
-
 			reader.readAsDataURL(this.uploadFile);
-      // console.log('imgs', this.imgs);
 		},
     getImages() {
       const path = 'http://192.168.1.142/getImages';
@@ -107,7 +102,6 @@ export default {
       }
       axios.post(path, payload)
         .then((response) => {
-          console.log(response);
           if (response.data.error != null) {
             alert(response.data.error);
           } else {
@@ -120,13 +114,11 @@ export default {
     }
 	},
 	created() {
-		console.log('created');
     this.email = this.raw_email;
     this.first_name = this.raw_first_name;
     this.last_name = this.raw_last_name;
     this.dob = this.raw_dob;
     this.token = this.raw_token;
-    console.log(this.username, this.token);
 	}
 }
 </script>
