@@ -12,7 +12,7 @@ import jwt
 
 # configuration
 DEBUG = True
-DATABASE = "database.db"
+DATABASE = "/home/kyle/csci430-problem2/server/database.db"
 SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # used for encryption and session management
