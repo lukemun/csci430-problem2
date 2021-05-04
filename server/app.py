@@ -93,7 +93,8 @@ def getImages():
     if validate != email:
         return jsonify( { 'error' : validate })
     db = get_db()
-    imgs_conn = db.execute('select * from photos where creator_email = ?', [email])
+    imgs_conn = db.execute("select * from photos where creator_email=:email",
+            { "email": email })
     imgs = imgs_conn.fetchall()
     response_imgs = []
     for row in imgs:
@@ -124,7 +125,6 @@ def register():
     p = re.compile(passRegex)
     emailRegex = ('^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$')
     e = re.compile(emailRegex)
-    print(dob)
     if (email == '' or not re.search(e, email)):
         return jsonify({ 'error' : "Please enter a valid email"})
     elif (first_name == ''):
@@ -138,12 +138,12 @@ def register():
     elif (not re.search(p, password)):
         return jsonify({ 'error' : "password must contain a number, lowercase, uppercase, and special char"})
     db = get_db()
-    known_users = db.execute('select * from users where email = ?', [email])
+    known_users = db.execute('select * from users where email=:email',
+            { "email": email })
     print ('known', known_users)
     num_users = known_users.fetchall()
     print ("# user with that email ", len(num_users))
     if (len(num_users) != 0):
-    	print ('here')
     	response['error'] = "Email taken"
     	return jsonify(response)
     db = SQLAlchemy()
@@ -157,14 +157,10 @@ def login():
     email = data.get('email')
     user = User.authenticate(**data)
 
-    print(user.first_name)
-    print(user.last_name)
-    print(user.email)
-
     if not user:
         return jsonify({ 'message': 'Invalid credentials', 'authenticated': False }), 401
 
-    token = user.encode_auth_token(email, app.config['SECRET_KEY'])
+    token = user.encode_auth_token(email, app.config['SECRET_KEY']).decode()
     # token = jwt.encode({
     #     'sub': user.username,
     #     'iat':datetime.utcnow(),

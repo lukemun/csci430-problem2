@@ -138,6 +138,7 @@ export default {
 
     	axios.post(path, payload)
     		.then((response) => {
+				console.log("Hello!");
     			console.log(response.data);
     			if (response.data.error != null) {
     				alert(response.data.error);

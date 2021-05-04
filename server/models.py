@@ -24,7 +24,6 @@ class User(db.Model):
         self.last_name = last_name
         self.dob = dob
         self.password = generate_password_hash(password)
-        print(self.password)
 
     @classmethod
     def authenticate(cls, **kwargs):

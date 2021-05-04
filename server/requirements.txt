@@ -1,5 +1,5 @@
 Flask==1.1.2
 Flask-Cors==3.0.10
-python-jwt==1.2.0
+PyJWT==1.5.3
 Flask-SQLAlchemy==2.5.1
 Werkzeug==1.0.1
