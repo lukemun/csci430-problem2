@@ -13,6 +13,6 @@ create table photos (
   id integer primary key autoincrement,
   name text not null,
   file blob not null,
-  creator_name string(120) not null,
-  foreign key(creator_name) references users(username)
+  creator_email string(255) not null,
+  foreign key(creator_email) references users(email)
 )
