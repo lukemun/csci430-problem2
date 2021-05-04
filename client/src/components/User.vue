@@ -62,13 +62,13 @@ export default {
     raw_email: String,
     raw_first_name: String,
     raw_last_name: String,
-    raw_dob: String, 
+    raw_dob: String,
     raw_token: String,
   },
 	methods: {
 		upload(evt) {
 			evt.preventDefault();
-      const path = 'http://localhost:5000/upload';
+      const path = 'http://192.168.1.142/upload';
 			var reader = new FileReader();
 			reader.onload = (e) => {
         // console.log('target', e.target.result);
@@ -100,9 +100,9 @@ export default {
       // console.log('imgs', this.imgs);
 		},
     getImages() {
-      const path = 'http://localhost:5000/getImages';
+      const path = 'http://192.168.1.142/getImages';
       const payload = {
-        username: this.username,
+        email: this.email,
         token: this.token,
       }
       axios.post(path, payload)

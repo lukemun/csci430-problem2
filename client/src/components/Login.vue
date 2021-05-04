@@ -1,4 +1,4 @@
-<template>
+192.168.1.142<template>
   <div class="container">
   	<b-row>
   		<b-col>
@@ -97,7 +97,6 @@
 
 <script>
 import axios from 'axios';
-
 export default {
   name: 'Login',
   data() {
@@ -134,8 +133,7 @@ export default {
     },
     attemptLogin(payload) {
     	console.log('login attempt');
-    	const path = 'http://localhost:5000/login'
-
+    	const path = 'http://192.168.1.142/login'
     	axios.post(path, payload)
     		.then((response) => {
 				console.log("Hello!");
@@ -176,8 +174,7 @@ export default {
     },
     attemptRegister(payload) {
     	console.log('register attempt');
-    	const path = 'http://localhost:5000/register'
-
+    	const path = 'http://192.168.1.142/register'
     	axios.post(path, payload)
     		.then((response) => {
     			console.log(response.data);
